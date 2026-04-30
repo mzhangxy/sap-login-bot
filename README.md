@@ -86,4 +86,4 @@ Actions → 选择对应运行记录 → Artifacts → sap-btp-screenshots
 
 如果 SAP 登录页面的元素发生变化（选择器不同），需要在 scripts/login.js 中调整 SELECTORS。
 
-Consent Banner/Cookie 弹窗会自动关闭，避免阻挡按钮点击。
+Consent Banner/Cookie 弹窗会自动关闭，避免阻挡按钮点击
