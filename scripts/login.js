@@ -5,15 +5,40 @@ const FormData = require("form-data");
 const { execSync } = require("child_process");
 
 async function sendToTelegram(filePath, caption) {
-  const telegramApi = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
-  const formData = new FormData();
-  formData.append("chat_id", process.env.TELEGRAM_CHAT_ID);
-  formData.append("caption", caption);
-  formData.append("photo", fs.createReadStream(filePath));
+  try {
+    // 1. 检查环境变量是否存在
+    if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
+      console.error("⚠️ 未配置 Telegram 环境变量，跳过发送");
+      return;
+    }
 
-  await axios.post(telegramApi, formData, {
-    headers: formData.getHeaders(),
-  });
+    // 2. 检查图片文件是否真的生成了
+    if (!fs.existsSync(filePath)) {
+      console.error(`⚠️ 找不到截图文件: ${filePath}，跳过发送`);
+      return;
+    }
+
+    const telegramApi = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
+    const formData = new FormData();
+    formData.append("chat_id", process.env.TELEGRAM_CHAT_ID);
+    formData.append("caption", caption);
+    formData.append("photo", fs.createReadStream(filePath));
+
+    await axios.post(telegramApi, formData, {
+      headers: formData.getHeaders(),
+      timeout: 15000 // 增加超时时间，防止网络死锁
+    });
+    
+    console.log("✅ Telegram 通知发送成功");
+  } catch (error) {
+    console.error("❌ Telegram 通知发送失败:");
+    // 打印 TG API 返回的真实错误信息（重要排查依据）
+    if (error.response) {
+      console.error(error.response.data);
+    } else {
+      console.error(error.message);
+    }
+  }
 }
 
 // 解析多账号配置
